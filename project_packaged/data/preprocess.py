@@ -22,8 +22,8 @@ def preprocess_data(news_csv_path, stock_csv_path, output_csv_path):
     stock_df = pd.read_csv(stock_csv_path)
 
     # Parse 'date' to datetime format in the stock data
-    stock_df['date'] = pd.to_datetime(stock_df['date']).dt.date
-
+    news_df['date'] = pd.to_datetime(news_df['date'])
+    stock_df['date'] = pd.to_datetime(stock_df['date'])
 
     # Handling missing dates in stock data for each company
     print("Filling missing dates in stock price data...")

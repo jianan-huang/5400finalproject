@@ -24,35 +24,51 @@ def fetch_news(api_key, start_date, end_date, output_csv_path):
 
     for company in companies:
         params['q'] = company
-        response = requests.get(base_url, params=params)
+        page = 1
 
-        if response.status_code == 200:
-            data = response.json()
-            articles = data.get('articles', [])
+        while True:
+            params['page'] = page
+            response = requests.get(base_url, params=params)
 
-            for article in articles:
-                url = article['url']
-                content = scrape_full_content(url) if url else article.get('content', 'N/A')
+            if response.status_code == 200:
+                data = response.json()
+                articles = data.get('articles', [])
 
-                all_articles.append({
-                    'company': company,
-                    'source': article['source']['name'],
-                    'author': article.get('author', 'N/A'),
-                    'title': article['title'],
-                    'description': article.get('description', 'N/A'),
-                    'url': url,
-                    'published_at': article['publishedAt'],
-                    'content': content
-                })
+                # If no more articles are available, break the loop
+                if not articles:
+                    break
 
-            # Adding a delay to avoid getting rate-limited by the API
-            time.sleep(1)
+                # Collect articles in a structured format
+                for article in articles:
+                    url = article['url']
+                    content = scrape_full_content(url) if url else article.get('content', 'N/A')
 
-        else:
-            print(f"Error fetching data for {company}: {response.status_code} - {response.text}")
-            if response.status_code == 426:
-                print("Please adjust the date range to comply with your API plan limits.")
-                return
+                    all_articles.append({
+                        'company': company,
+                        'source': article['source']['name'],
+                        'author': article.get('author', 'N/A'),
+                        'title': article['title'],
+                        'description': article.get('description', 'N/A'),
+                        'url': url,
+                        'published_at': article['publishedAt'],
+                        'content': content
+                    })
+
+                # If fewer than 100 articles are returned, it means there are no more pages
+                if len(articles) < 100:
+                    break
+
+                # Move to the next page
+                page += 1
+
+                # Adding a delay to avoid getting rate-limited by the API
+                time.sleep(1)
+
+            else:
+                print(f"Error fetching data for {company}: {response.status_code} - {response.text}")
+                if response.status_code == 426:
+                    print("Please adjust the date range to comply with your API plan limits.")
+                break
 
     df = pd.DataFrame(all_articles)
     df = df[df['content'] != 'N/A']

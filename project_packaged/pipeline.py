@@ -19,10 +19,10 @@ def run_pipeline():
     visualization_output_path = 'results/visualizations/'
 
     # Fetch the news articles
-    # fetch_news(api_key, start_date, end_date, raw_news_path)
+    fetch_news(api_key, start_date, end_date, raw_news_path)
 
     # Fetch historical stock prices
-    # fetch_stock_prices("2024-10-26", "2024-11-23", raw_stock_path)
+    fetch_stock_prices("2024-10-26", "2024-11-23", raw_stock_path)
 
     # Preprocess and merge the fetched data
     preprocess_data(raw_news_path, raw_stock_path, processed_data_path)
