@@ -14,6 +14,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
+import matplotlib.pyplot as plt
 
 def print_dataset_info(data):
     """
@@ -68,33 +69,21 @@ def feature_engineering(data):
 
 def select_features(data):
     """
-    Dynamically select features based on dataset columns.
+    Select key features for training.
     """
-    potential_features = [
-        'daily_return', 'volatility', 
-        'RSI_14', 'ROC_14',
+    features = [
+        'daily_return', 'volatility',
         'vader_daily_sentiment_score', 'finbert_daily_sentiment_score',
-        'vader_sentiment_lag1', 'finbert_sentiment_lag1',
-        'vader_sentiment_lag2', 'finbert_sentiment_lag2',
-        'vader_sentiment_lag3', 'finbert_sentiment_lag3',
-        'rolling_std_14', 'OBV'
+        'moving_avg_7', 'ema_7', 'moving_avg_30', 'ema_30'
     ]
 
-    # Add moving averages and EMA columns
-    for window in [7, 14, 30, 50, 100]:
-        potential_features.extend([f'moving_avg_{window}', f'ema_{window}'])
+    # Only keep features that exist in the dataset
+    features = [col for col in features if col in data.columns]
 
-    # Add volume features if volume column exists
-    if 'volume' in data.columns:
-        potential_features.extend(['volume_lag1', 'volume_lag2', 'volume_lag3'])
-
-    # Select only features that exist in the dataset
-    features = [col for col in potential_features if col in data.columns]
-    
     print("\nSelected Features:")
     for feature in features:
         print(f"- {feature}")
-    
+
     return features
 
 def train_and_evaluate_models(X, y):
@@ -208,7 +197,36 @@ def train_lstm_model(X, y):
     print(f"\nLSTM Model Performance:")
     print(f"Accuracy: {accuracy:.2f}")
 
-    return model
+    return model,X_test,y_test
+
+def plot_predictions(y_test, y_pred):
+    plt.figure(figsize=(10, 6))
+    plt.plot(y_test, label='Actual Price Direction', color='blue')
+    plt.plot(y_pred, label='Predicted Price Direction', color='red')
+    plt.xlabel('Time')
+    plt.ylabel('Price Direction (0 = Down, 1 = Up)')
+    plt.legend()
+    plt.title('Actual vs Predicted Price Direction')
+    plt.show()
+
+def plot_confusion_matrix(cm, title='Confusion Matrix'):
+    plt.figure(figsize=(8, 6))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.colorbar()
+    plt.xticks(np.arange(2), ['Down', 'Up'])
+    plt.yticks(np.arange(2), ['Down', 'Up'])
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+
+    thresh = cm.max() / 2
+    for i, j in np.ndindex(cm.shape):
+        plt.text(j, i, f"{cm[i, j]}", 
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+    plt.show()
+
+
 
 def main():
     # Load data
@@ -232,9 +250,18 @@ def main():
 
     # Train LSTM model
     try:
-        lstm_model = train_lstm_model(X, y)
+        lstm_model,X_test,y_test = train_lstm_model(X, y)
     except Exception as e:
         print(f"Error training LSTM model: {e}")
+    
+    # Call this function after getting predictions
+    y_pred = lstm_model.predict(X_test)  # Replace with the prediction method you used
+    y_pred = (y_pred > 0.5).astype(int)  # Convert probabilities to binary predictions
+    plot_predictions(y_test, y_pred)
+
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    plot_confusion_matrix(conf_matrix, title='Confusion Matrix for LSTM Predictions')
+
 
 if __name__ == "__main__":
     main()
