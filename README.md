@@ -14,6 +14,8 @@ debuged, fixed few features and algothrim
 - added evaluation and visualization, output stored in result and visualization file
 
 
+## Structure
+```
 .
 ├── data
 │   ├── __pycache__
@@ -70,3 +72,4 @@ debuged, fixed few features and algothrim
 │       ├── XGBoost_feature_importance.png
 │       └── XGBoost_roc_curve.png
 └── setup.py
+```
