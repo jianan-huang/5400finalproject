@@ -52,6 +52,9 @@ def sentiment_analysis_and_feature_engineering(input_csv_path, output_csv_path):
     # Drop rows with NaN values after feature engineering
     merged_df.dropna(inplace=True)
 
+    # Create the target column: 1 if daily return is positive, 0 otherwise
+    merged_df['target'] = merged_df['daily_return'].apply(lambda x: 1 if x > 0 else 0)
+
     # Ensure the output directory exists
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
 
