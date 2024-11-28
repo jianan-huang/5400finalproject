@@ -19,17 +19,17 @@ def run_pipeline():
     model_output_path = 'results/models/stock_prediction_best_model.pkl'
     visualization_output_path = 'results/visualizations/'
 
-    # # Fetch the news articles
-    # fetch_news(api_key, start_date, end_date, raw_news_path)
+    # Fetch the news articles
+    fetch_news(api_key, start_date, end_date, raw_news_path)
 
-    # # Fetch historical stock prices
-    # fetch_stock_prices("2024-10-26", "2024-11-23", raw_stock_path)
+    # Fetch historical stock prices
+    fetch_stock_prices("2024-10-26", "2024-11-23", raw_stock_path)
 
-    # # Preprocess and merge the fetched data
-    # preprocess_data(raw_news_path, raw_stock_path, processed_data_path)
+    # Preprocess and merge the fetched data
+    preprocess_data(raw_news_path, raw_stock_path, processed_data_path)
 
-    # # Perform sentiment analysis and feature engineering
-    # sentiment_analysis_and_feature_engineering(processed_data_path, feature_engineered_data_path)
+    # Perform sentiment analysis and feature engineering
+    sentiment_analysis_and_feature_engineering(processed_data_path, feature_engineered_data_path)
 
     # Train and evaluate models, and create visualizations
     train_and_evaluate_models(feature_engineered_data_path, model_output_path, visualization_output_path)
