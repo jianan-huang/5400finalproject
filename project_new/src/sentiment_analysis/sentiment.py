@@ -56,6 +56,7 @@ def load_sentiment_words(pos_file_path, neg_file_path):
 def calculate_sentiment(text, positive_words, negative_words):
     """
     Calculate sentiment score and polarity of a given text.
+    This function calculates the sentiment of a given text using sets of positive and negative words. 
 
     Parameters:
     text (str): Input text.
