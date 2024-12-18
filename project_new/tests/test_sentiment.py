@@ -3,7 +3,7 @@ import os
 import sys
 import pandas as pd
 
-# Dynamically add the src directory to Python path
+# Dynamically add the src directory to Python paths
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(project_root, "src"))
 
@@ -17,6 +17,7 @@ NEG_FILE = "tests/test_data/test_negative_words.txt"
 INPUT_FILE = "tests/test_data/test_preprocessed_news.json"
 OUTPUT_FILE = "tests/test_data/test_output.json"
 
+# Create functions for test sentiments
 
 def test_load_sentiment_words():
     """Test loading positive and negative words."""
