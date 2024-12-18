@@ -1,0 +1,23 @@
+name: dsan5400
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - nltk
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - wordcloud
+  - pytest
+  - yfinance
+  - newsapi-python
+  - beautifulsoup4
+  - requests
+  - jupyter
+  - ipykernel
+  - pip
+  - pip:
+      - drawio  # If you need diagramming tools
