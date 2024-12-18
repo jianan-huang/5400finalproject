@@ -2,13 +2,28 @@ import pandas as pd
 from nltk.tokenize import word_tokenize
 import nltk
 import os
+import logging
+
+# Configure logging
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logging.basicConfig(
+    filename=os.path.join(LOG_DIR, "sentiment.log"),
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filemode="a",
+)
 
 # Ensure NLTK 'punkt' resource is available
 nltk.data.path.append(os.path.expanduser("~/nltk_data"))
 try:
     nltk.data.find("tokenizers/punkt")
+    logging.info("NLTK 'punkt' tokenizer is available.")
 except LookupError:
+    logging.info("Downloading NLTK 'punkt' tokenizer...")
     nltk.download("punkt", quiet=True)
+    logging.info("Downloaded 'punkt' tokenizer.")
 
 
 def load_sentiment_words(pos_file_path, neg_file_path):
@@ -22,13 +37,20 @@ def load_sentiment_words(pos_file_path, neg_file_path):
     Returns:
     tuple: Sets of positive and negative words.
     """
-    with open(pos_file_path, "r") as pos_file:
-        positive_words = set(line.strip() for line in pos_file if line.strip())
+    logging.info(f"Loading sentiment word lists from '{pos_file_path}' and '{neg_file_path}'...")
+    try:
+        with open(pos_file_path, "r") as pos_file:
+            positive_words = set(line.strip() for line in pos_file if line.strip())
 
-    with open(neg_file_path, "r") as neg_file:
-        negative_words = set(line.strip() for line in neg_file if line.strip())
+        with open(neg_file_path, "r") as neg_file:
+            negative_words = set(line.strip() for line in neg_file if line.strip())
 
-    return positive_words, negative_words
+        logging.info(f"Loaded {len(positive_words)} positive words and {len(negative_words)} negative words.")
+        return positive_words, negative_words
+
+    except Exception as e:
+        logging.error(f"Error loading sentiment word lists: {e}")
+        raise
 
 
 def calculate_sentiment(text, positive_words, negative_words):
@@ -43,15 +65,19 @@ def calculate_sentiment(text, positive_words, negative_words):
     Returns:
     tuple: Sentiment score and polarity ('positive' or 'negative').
     """
-    words = word_tokenize(text)
+    try:
+        words = word_tokenize(text)
 
-    positive_count = sum(1 for word in words if word in positive_words)
-    negative_count = sum(1 for word in words if word in negative_words)
+        positive_count = sum(1 for word in words if word in positive_words)
+        negative_count = sum(1 for word in words if word in negative_words)
 
-    score = positive_count - negative_count
-    polarity = "positive" if score >= 0 else "negative"
+        score = positive_count - negative_count
+        polarity = "positive" if score >= 0 else "negative"
 
-    return score, polarity
+        return score, polarity
+    except Exception as e:
+        logging.error(f"Error calculating sentiment for text: {e}")
+        return 0, "positive"
 
 
 def calculate_sentiments(input_file, pos_file, neg_file, output_file):
@@ -67,24 +93,35 @@ def calculate_sentiments(input_file, pos_file, neg_file, output_file):
     Returns:
     None
     """
-    print("Loading preprocessed data...")
-    news_data = pd.read_json(input_file)
+    logging.info("Starting sentiment analysis pipeline...")
+    try:
+        print("Loading preprocessed data...")
+        logging.info(f"Loading preprocessed data from '{input_file}'...")
+        news_data = pd.read_json(input_file)
 
-    print("Loading sentiment word lists...")
-    positive_words, negative_words = load_sentiment_words(pos_file, neg_file)
+        print("Loading sentiment word lists...")
+        positive_words, negative_words = load_sentiment_words(pos_file, neg_file)
 
-    print("Calculating sentiment scores...")
-    news_data["sentiment_score"], news_data["polarity"] = zip(
-        *news_data["filtered_content"].apply(
-            lambda x: calculate_sentiment(x, positive_words, negative_words)
-            if isinstance(x, str)
-            else (0, "positive")
+        print("Calculating sentiment scores...")
+        logging.info("Calculating sentiment scores for each article...")
+        news_data["sentiment_score"], news_data["polarity"] = zip(
+            *news_data["filtered_content"].apply(
+                lambda x: calculate_sentiment(x, positive_words, negative_words)
+                if isinstance(x, str)
+                else (0, "positive")
+            )
         )
-    )
 
-    print("Saving sentiment analysis results...")
-    news_data.to_json(output_file, orient="records", date_format="iso")
-    print(f"Sentiment detection complete! Results saved to '{output_file}'.")
+        print("Saving sentiment analysis results...")
+        logging.info(f"Saving results to '{output_file}'...")
+        news_data.to_json(output_file, orient="records", date_format="iso")
+
+        print(f"Sentiment detection complete! Results saved to '{output_file}'.")
+        logging.info("Sentiment analysis pipeline complete!")
+
+    except Exception as e:
+        logging.error(f"An error occurred during sentiment analysis: {e}")
+        raise
 
 
 if __name__ == "__main__":
