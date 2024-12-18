@@ -1,0 +1,6 @@
+[
+    {"filtered_content": "the product is great and excellent", "id": 1},
+    {"filtered_content": "the service was terrible and bad", "id": 2},
+    {"filtered_content": "it was a good day but a bit sad", "id": 3},
+    {"filtered_content": "", "id": 4}
+]
